@@ -12,7 +12,6 @@ import java.io.IOException;
 @Service
 public class SpeechToTextService {
     public String convertSpeechToText(byte[] audioBytes) throws IOException {
-
         try (SpeechClient speechClient = SpeechClient.create()) {
             RecognitionConfig config = RecognitionConfig.newBuilder()
                     .setEncoding(RecognitionConfig.AudioEncoding.LINEAR16)
