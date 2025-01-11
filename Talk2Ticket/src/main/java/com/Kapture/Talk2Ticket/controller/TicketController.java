@@ -33,45 +33,51 @@ public class TicketController {
     @PostMapping("/create")
     public ResponseEntity<byte[]> createTicket(@RequestParam("audioFile") MultipartFile audioFile) throws Exception {
 
-        if (audioFile.isEmpty()) {
-            return ResponseEntity.badRequest().body("Audio file is missing.".getBytes());
+        try {
+            if (audioFile.isEmpty()) {
+                return ResponseEntity.badRequest().body("Audio file is missing.".getBytes());
+            }
+
+            // Step 2: Save file locally (optional, for processing)
+            String filePath = "/tmp/" + Objects.requireNonNull(audioFile.getOriginalFilename());
+            audioFile.transferTo(new java.io.File(filePath));
+
+            // Step 1: Transcribe audio
+            String transcription = speechToTextService.convertSpeechToText(filePath);
+
+            // Step 2: Extract intent
+            String intent = nlpService.extractIntent(transcription, "o");
+
+            // Step 3: Perform action based on intent
+            String responseMessage;
+            switch (intent) {
+                case "create_ticket":
+                    ticketService.createTicket(transcription, 1);
+                    responseMessage = "Ticket created successfully.";
+                    break;
+
+                case "check_ticket_status":
+                    responseMessage = "Here is your ticket status: Open.";
+                    break;
+
+                default:
+                    responseMessage = "Sorry, I didn't understand your request. Can you rephrase?";
+                    break;
+            }
+
+            byte[] responseAudio = textToSpeechService.convertTextToSpeech(responseMessage);
+
+            // Return audio content as the response
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "responseAudio.wav");
+
+            return new ResponseEntity<>(responseAudio, headers, HttpStatus.OK);
         }
-
-        // Step 2: Save file locally (optional, for processing)
-        String filePath = "/tmp/" + Objects.requireNonNull(audioFile.getOriginalFilename());
-        audioFile.transferTo(new java.io.File(filePath));
-
-        // Step 1: Transcribe audio
-        String transcription = speechToTextService.convertSpeechToText(filePath);
-
-        // Step 2: Extract intent
-        String intent = nlpService.extractIntent(transcription,"o");
-
-        // Step 3: Perform action based on intent
-        String responseMessage;
-        switch (intent) {
-            case "create_ticket":
-                ticketService.createTicket(transcription, 1);
-                responseMessage = "Ticket created successfully.";
-                break;
-
-            case "check_ticket_status":
-                responseMessage = "Here is your ticket status: Open.";
-                break;
-
-            default:
-                responseMessage = "Sorry, I didn't understand your request. Can you rephrase?";
-                break;
+        catch (Exception e) {
+            System.out.println(e.getMessage());
         }
-
-        byte[] responseAudio = textToSpeechService.convertTextToSpeech(responseMessage);
-
-        // Return audio content as the response
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.setContentDispositionFormData("attachment", "responseAudio.wav");
-
-        return new ResponseEntity<>(responseAudio, headers, HttpStatus.OK);
+        return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/{id}")
