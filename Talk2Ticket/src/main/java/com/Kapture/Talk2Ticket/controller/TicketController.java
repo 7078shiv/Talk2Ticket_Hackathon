@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Objects;
 
 @RestController
@@ -39,8 +41,13 @@ public class TicketController {
             }
 
             // Step 2: Save file locally (optional, for processing)
-            String filePath = "/tmp/" + Objects.requireNonNull(audioFile.getOriginalFilename());
-            audioFile.transferTo(new java.io.File(filePath));
+//            String filePath = "/tmp/" + Objects.requireNonNull(audioFile.getOriginalFilename());
+//            audioFile.transferTo(new java.io.File(filePath));
+
+            Path tempFile = Files.createTempFile("audio", ".wav");
+            audioFile.transferTo(tempFile.toFile());
+            String filePath = tempFile.toString();
+            System.out.println("File saved to: " + filePath);
 
             // Step 1: Transcribe audio
             String transcription = speechToTextService.convertSpeechToText(filePath);
