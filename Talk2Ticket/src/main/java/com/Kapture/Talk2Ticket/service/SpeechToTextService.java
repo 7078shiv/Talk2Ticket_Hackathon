@@ -13,7 +13,7 @@ public class SpeechToTextService {
         try{
 
         // Path to your Vosk model
-        String modelPath = "C:\\Users\\SHIVA\\Downloads\\vosk-model-small-en-us-0.15\\vosk-model-small-en-us-0.15";
+        String modelPath = "/home/shivang/Documents/vosk-model-small-en-us-0.15";
 
         // Load the Vosk model
         Model model = new Model(modelPath);

@@ -1,5 +1,6 @@
 package com.Kapture.Talk2Ticket.dao;
 
+import com.Kapture.Talk2Ticket.model.TicketModal;
 import com.Kapture.Talk2Ticket.repository.TicketRepository;
 import com.kapturecrm.ticket.objects.Ticket;
 import org.hibernate.Session;
@@ -19,7 +20,7 @@ public class TicketDao implements TicketRepository {
     SessionFactory sessionFactory;
 
     @Override
-    public boolean save(Ticket model) {
+    public boolean save(TicketModal model) {
         boolean isClose = false;
         Session session = null;
         try {
